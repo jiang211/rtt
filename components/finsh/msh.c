@@ -269,31 +269,29 @@ static int _msh_exec_cmd(char *cmd, rt_size_t length, int *retp)
     rt_size_t cmd0_size = 0;
     cmd_function_t cmd_func;
     char *argv[FINSH_ARG_MAX];
-
     RT_ASSERT(cmd);
     RT_ASSERT(retp);
-
-    /* find the size of first command */
-    while ((cmd[cmd0_size] != ' ' && cmd[cmd0_size] != '\t') && cmd0_size < length)
-        cmd0_size ++;
+                        
+    while (cmd[cmd0_size] != ' ' && cmd[cmd0_size] != '\t' && cmd0_size < length)
+        cmd0_size++;
     if (cmd0_size == 0)
         return -RT_ERROR;
+    char tmp[32];
+    rt_memcpy(tmp, cmd, cmd0_size);
+    tmp[cmd0_size] = '\0';              // 确保字符串结尾
 
-    cmd_func = msh_get_cmd(cmd, cmd0_size);
+    cmd_func = msh_get_cmd(tmp, cmd0_size);
     if (cmd_func == RT_NULL)
         return -RT_ERROR;
 
-    /* split arguments */
-    rt_memset(argv, 0x00, sizeof(argv));
+    rt_memset(argv, 0, sizeof(argv));
     argc = msh_split(cmd, length, argv);
     if (argc == 0)
         return -RT_ERROR;
 
-    /* exec this command */
     *retp = cmd_func(argc, argv);
     return 0;
 }
-
 #if defined(RT_USING_SMART) && defined(DFS_USING_POSIX)
 pid_t exec(char*, int, int, char**);
 
